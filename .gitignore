@@ -1,0 +1,92 @@
+# Compiled class files
+*.class
+*.kt.metadata
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Libraries
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Macos
+.DS_Store
+
+# Generated files
+/build/
+out/
+generated/
+
+# Gradle files
+.gradle/
+# Ignore everything in the gradle/ directory
+/gradle/**
+# But do not ignore the gradle-wrapper.jar and gradle-wrapper.properties files
+!gradle/wrapper/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# IDEA project files
+*.iml
+*.ipr
+*.iws
+.idea/
+.idea/*
+
+# Android Studio specific
+*.apk
+*.ap_
+.cxx/
+.externalNativeBuild/
+.cxx/cmake/Debug/
+.cxx/cmake/Release/
+output.json
+/captures/
+/.intermediates/
+/.metadata/
+/.cxx/
+/externalNativeBuild
+/.externalNativeBuild/
+/intermediates/
+/.bundles/
+/aapt_generated_r_txt/
+/merged_native_libs/
+/packaged_reproducted_libs/
+/logs/
+/scripts/
+/symbol_cache/
+/tmp/
+/lint/
+.tinker/
+
+# Kotlin
+*.kotlin_metadata
+*.kotlin_module
+*.kotlin_cache
+
+
+# virtual environment
+.venv/
+venv/
+
+# Compiled files
+*.o
+*.so
+*.dylib
+*.bin
+*.dll
+*.exe
+
+# Directories
+**/target/
+**/out/
+**/bin/
