@@ -26,8 +26,8 @@ class TokenStorage private constructor(private val oauthClient: HttpClient) {
             url = "https://services.testgjensidige.no/mga/sps/oauth/oauth20/token",
             formParameters = parameters {
                 append("grant_type", "client_credentials")
-                append("client_id", "todo")  // insert actual client id
-                append("client_secret", "todo")  // insert actual client secret
+                append("client_id", "")  // insert actual client id
+                append("client_secret", "")  // insert actual client secret
             }
         ).body()
         tokenStorage.add(BearerTokens(tokenInfo.accessToken, ""))
