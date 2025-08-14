@@ -1,5 +1,6 @@
 package no.gjensidige.bsf.example.security
 
+
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.java.*
@@ -7,12 +8,10 @@ import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
-import no.gjensidige.bsf.api.client.api.EgenerklaeringApi
-
-
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import no.gjensidige.bsf.api.client.api.BoligselgerforsikringApi
+import no.gjensidige.bsf.api.client.api.SelfDeclarationApi
+import no.gjensidige.bsf.api.client.api.SellerInsuranceApi
 import no.gjensidige.bsf.example.util.localDateSerializer
 import java.time.LocalDate
 
@@ -20,14 +19,14 @@ import java.time.LocalDate
 suspend fun tokenStorage(clientEngine: HttpClientEngine = Java.create { }) =
     TokenStorage.create(oauthClient(clientEngine))
 
-fun egenerklaeringApi(tokenStorage: TokenStorage, httpClientEngine: HttpClientEngine = Java.create { }) =
-    EgenerklaeringApi(
+fun selfDeclarationApi(tokenStorage: TokenStorage, httpClientEngine: HttpClientEngine = Java.create { }) =
+    SelfDeclarationApi(
         httpClientEngine = httpClientEngine,
         httpClientConfig = httpClientConfig(tokenStorage)
     )
 
-fun boligselgerforsikringApi(tokenStorage: TokenStorage, httpClientEngine: HttpClientEngine = Java.create { }) =
-    BoligselgerforsikringApi(
+fun sellerInsuranceApi(tokenStorage: TokenStorage, httpClientEngine: HttpClientEngine = Java.create { }) =
+    SellerInsuranceApi(
         httpClientEngine = httpClientEngine,
         httpClientConfig = httpClientConfig(tokenStorage)
     )

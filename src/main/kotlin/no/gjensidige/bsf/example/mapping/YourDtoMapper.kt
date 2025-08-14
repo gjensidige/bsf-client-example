@@ -3,54 +3,54 @@ package no.gjensidige.bsf.example.mapping
 import no.gjensidige.bsf.api.client.model.*
 import no.gjensidige.bsf.example.dto.internal.YourDto
 
-fun YourDto.mapToBoligsalgopplysninger() =
-    BoligsalgopplysningerDto(
-        oppdragsid = oppdragsid,
-        bolig = BoligDto(
-            adresse =  AdresseDto(
-                gateadresse = bolig.adresse.gateadresse,
-                poststed = bolig.adresse.poststed,
-                postnummer = bolig.adresse.postnummer,
-                kommunenummer = bolig.adresse.kommunenummer,
-                gaardsnummer = bolig.adresse.gaardsnummer,
-                bruksnummer = bolig.adresse.bruksnummer,
-                festenummer = bolig.adresse.festenummer,
-                seksjonsnummer = bolig.adresse.seksjonsnummer,
-                bolignummer = bolig.adresse.bolignummer
+fun YourDto.mapToEstateSaleDto() =
+    EstateSaleDto(
+        assignmentId = assignmentId,
+        brokerDepartment = BrokerDepartmentDto(
+            name = brokerDepartment.name,
+            orgnr = brokerDepartment.orgnr,
+            id = brokerDepartment.id,
+        ),
+        estate = EstateDto(
+            address = AddressDto(
+                streetAddress = estate.address.streetAddress,
+                city = estate.address.city,
+                postalCode = estate.address.postalCode,
+                municipalityNumber = estate.address.municipalityNumber,
+                gaardsnummer = estate.address.gaardsnummer,
+                bruksnummer = estate.address.bruksnummer,
+                festenummer = estate.address.festenummer,
+                seksjonsnummer = estate.address.seksjonsnummer,
+                bolignummer = estate.address.bolignummer
             ),
-            kjeller =  bolig.kjeller,
-            eiendomstype = listOf(EiendomstypeDto.valueOf(bolig.eiendomstype.name)),
-            bruksareal = bolig.bruksareal,
-            byggeaar = bolig.bruksareal
+            estateType = EstateTypeDto.valueOf(estate.estateType.name),
+            floorArea = estate.floorArea,
+            builtYear = estate.builtYear
         ),
-        meglerkontor = MeglerkontorDto(
-            partner = PartnerDto.PROPR,
-            avdelingsnavn = meglerkontor.avdelingsnavn,
-            avdelingsId = meglerkontor.avdelingsId,
-            organisasjonsnummer = meglerkontor.organisasjonsnummer,
+        mainSeller = SellerDto(
+            firstname = mainSeller.firstname,
+            surname = mainSeller.surname,
+            socialSecurityNumber = mainSeller.socialSecurityNumber,
+            phoneNumber = mainSeller.phoneNumber,
+            email =  mainSeller.email
         ),
-        hovedselger = SelgerDto(
-            fornavn = selger.fornavn,
-            etternavn = selger.etternavn,
-            telefonnummer = selger.telefonnummer,
-            epost =  selger.epost,
-            personnummer = selger.personnummer
-        ),
-        medselgere = listOf(),
-        salgstype = salgstype.map { SalgstypeDto.valueOf(it.name) },
-        prisantydning = prisantydning,
+        coSellers = listOf(),
+        ownershipType = OwnershiptypeDto.valueOf(ownershipType.name),
+        priceSuggestion = priceSuggestion,
+        forcedSale = false,
+        estateOfDeceased = false,
+        professional = false
     )
 
-fun YourDto.mapToBoligsalgopplysningerWithKjopsdetaljer() =
-    mapToBoligsalgopplysninger().copy(
-        kjopsopplysninger = KjopsopplysningerDto(
-            salgssum = salgssum,
-            overtakelsedato = overtakelsedato,
-            formidlingsforingsdato = overtakelsedato,  // for when the insurance should be active from, often same as overtakelsedato
-            dokumenter = DokumenterDto(
-                tilstandsrapport = tilstandsrapport,
-                salgsoppgave = salgsoppgave,
-                salgsoppgaveVedlegg = salgsoppgaveVedlegg
-            )
-        )
+
+fun YourDto.mapToEstateSaleDtoWithFormLock() =
+    mapToEstateSaleDto().copy(
+        selfDeclarationFormLocked = true
+    )
+
+fun YourDto.mapToEstateSaleDtoWithInsuranceActive() =
+    mapToEstateSaleDto().copy(
+        sellerInsuranceActive = true,
+        salePrice = salePrice,
+        takeoverDate = takeoverDate,
     )

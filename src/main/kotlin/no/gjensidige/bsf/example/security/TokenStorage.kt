@@ -23,7 +23,7 @@ class TokenStorage private constructor(private val oauthClient: HttpClient) {
 
     private suspend fun addNewTokenToStorage() {
         val tokenInfo: TokenInfo = oauthClient.submitForm(
-            url = "https://services.testgjensidige.no/mga/sps/oauth/oauth20/token",
+            url = "https://connect.testgjensidige.com/mga/sps/oauth/oauth20/token",
             formParameters = parameters {
                 append("grant_type", "client_credentials")
                 append("client_id", "")  // insert actual client id
