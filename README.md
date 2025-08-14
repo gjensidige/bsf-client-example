@@ -1,8 +1,8 @@
-# Boligselgersikring API Client Example
+# Gjensidige Eiendomsmegling API Client Example
 
-Example configuration and code to consume Gjensidiges boligselgerforsikring API.
+Example configuration and code to consume Gjensidiges eiendomsmegling API.
 
-Main.kt contains code to execute the send egenerklaering step against Gjensidiges test environment.
+Main.kt contains code to execute the send-self-declaration step against Gjensidiges test environment.
 The tests provide a more complete example of api usage/flow, but the underlying api is mocked to make the tests pass.
 
 ## How to run

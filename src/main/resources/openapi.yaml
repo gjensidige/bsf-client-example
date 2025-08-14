@@ -2,14 +2,14 @@ openapi: 3.1.0
 info:
   title: Gjensidige Boligselgerforsikring API
   description: |-
-    Openapi spec for Gjensidige boligselgerforsikring service.
+    Openapi spec for Gjensidige's seller insurance and self declaration service.
   contact:
-    email: joril.andersen@gjensidige.no,scott.gullaksen@gjensidige.no
+    email: scott.gullaksen@gjensidige.no
   version: 1.0.0
 
 servers:
-  - url: https://services.testgjensidige.no/eiendomsmegling-api
-  - url: https://services.gjensidige.no/eiendomsmegling-api
+  - url: https://connect.testgjensidige.com/eiendomsmegling-api
+  - url: https://connect.gjensidige.com/eiendomsmegling-api
 
 security:
   - app2AppOauth:
@@ -17,123 +17,90 @@ security:
       - bsf:write
 
 tags:
-  - name: egenerklaering
-    description: Access to operations on the egenerklæringskjema
+  - name: self declaration
+    description: Access to operations on the self declaration form
     externalDocs:
-      description: Find out more about egenerklæringer
+      description: Find out more about Gjensidige's self declaration form
       url: https://www.gjensidige.no/forsikring/boligforsikring/boligselgerforsikring/egenerklaring
-  - name: boligselgerforsikring
-    description: Confirm/order boligselgerforsikring
+  - name: seller insurance
+    description: Access to operations on sellers estate insurance
     externalDocs:
-      description: Find out more about boligselgerforsikring
+      description: Find out more about Gjensidige's seller insurance
       url: https://www.gjensidige.no/forsikring/boligforsikring/boligselgerforsikring
 
 paths:
-  /egenerklaering:
+  /self-declaration:
     post:
       tags:
-        - egenerklaering
-      summary: Send/resend the egenerklæringskjema to the seller of the estate
-      operationId: sendEgenerklaering
+        - self declaration
+      summary: Send/resend the self declaration form with an insurance offer for the seller to fill out
+      operationId: sendSelfDeclaration
       requestBody:
-        $ref: '#/components/requestBodies/Boligsalgopplysninger'
+        $ref: '#/components/requestBodies/EstateSale'
       responses:
         '200':
-          $ref: '#/components/responses/Tilbud'
+          $ref: '#/components/responses/InsuranceDetails'
         '500':
           description: Internal server error
         default:
           $ref: '#/components/responses/Error'
 
-  /egenerklaering/lock:
     put:
       tags:
-        - egenerklaering
-      summary: Lock the egenerklaering to prevent further editing by the seller
-      operationId: lockEgenerklaering
+        - self declaration
+      summary: Modify details or state of self declaration form
+      operationId: updateSelfDeclaration
       requestBody:
-        $ref: '#/components/requestBodies/Boligsalgopplysninger'
+        $ref: '#/components/requestBodies/EstateSale'
       responses:
         '200':
-          $ref: '#/components/responses/Tilbud'
+          $ref: '#/components/responses/InsuranceDetails'
         '500':
           description: Internal server error
         default:
           $ref: '#/components/responses/Error'
 
-  /egenerklaering/unlock:
-    put:
-      tags:
-        - egenerklaering
-      summary: Unlock the egenerklaering to allow editing by the seller
-      operationId: unlockEgenerklaering
-      requestBody:
-        $ref: '#/components/requestBodies/Boligsalgopplysninger'
-      responses:
-        '200':
-          $ref: '#/components/responses/Tilbud'
-        '500':
-          description: Internal server error
-        default:
-          $ref: '#/components/responses/Error'
-
-  /egenerklaering/{id}/status:
+  /self-declaration/{assignmentId}:
     get:
       tags:
-        - egenerklaering
-      summary: Read status on the egenerklæring
-      operationId: getEgenerklaeringStatus
+        - self declaration
+      summary: Retrieve details from the self declaration form; form progress, etc
+      operationId: getSelfDeclarationDetails
       parameters:
-        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/assignmentId'
         - $ref: '#/components/parameters/orgnr'
       responses:
         '200':
-          $ref: '#/components/responses/EgenerklaeringStatus'
+          $ref: '#/components/responses/SelfDeclarationDetails'
         default:
           $ref: '#/components/responses/Error'
 
-  /egenerklaering/{id}/signed:
+  /self-declaration/{assignmentId}/signed-pdf:
     get:
       tags:
-        - egenerklaering
-      summary: Get the signed pdf if available
-      operationId: getSignedEgenerklaering
+        - self declaration
+      summary: Retrieve the signed pdf if available
+      operationId: getSignedSelfDeclarationPdf
       parameters:
-        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/assignmentId'
         - $ref: '#/components/parameters/orgnr'
       responses:
         '200':
-          $ref: '#/components/responses/SignedEgenerklaering'
+          $ref: '#/components/responses/SignedSelfDeclaration'
         default:
           $ref: '#/components/responses/Error'
 
-  /boligselgerforsikring/price:
+  /seller-insurance:
     put:
       tags:
-        - boligselgerforsikring
-      summary: Get an updated price estimate based on new boligsalgopplysninger
-      operationId: updatePrice
+        - seller insurance
+      summary: Update details of the seller insurance
+      operationId: updateSellerInsurance
       requestBody:
-        $ref: '#/components/requestBodies/Boligsalgopplysninger'
+        $ref: '#/components/requestBodies/EstateSale'
       responses:
         '200':
-          $ref: '#/components/responses/Tilbud'
-        '500':
-          description: Internal server error
-        default:
-          $ref: '#/components/responses/Error'
-
-  /boligselgerforsikring/buy:
-    post:
-      tags:
-        - boligselgerforsikring
-      summary: Confirm/buy the boligselgerforsikring
-      operationId: buyBoligselgerforsikring
-      requestBody:
-        $ref: '#/components/requestBodies/Boligsalgopplysninger'
-      responses:
-        '200':
-          $ref: '#/components/responses/Betalingsinformasjon'
+          $ref: '#/components/responses/InsuranceDetails'
         '500':
           description: Internal server error
         default:
@@ -141,488 +108,273 @@ paths:
 
 components:
   parameters:
-    id:
-      name: id
+    assignmentId:
+      name: assignmentId
       in: path
       required: true
       schema:
-        $ref: '#/components/schemas/Oppdragsid'
+        $ref: '#/components/schemas/AssignmentId'
 
     orgnr:
       name: orgnr
       in: query
       required: true
       schema:
-        type: array
-        items:
-          $ref: '#/components/schemas/Organisasjonsnummer'
-        minItems: 1
-        uniqueItems: true
-      style: form
-      explode: true
+        $ref: '#/components/schemas/OrganizationNumber'
 
   schemas:
-    Boligsalgopplysninger:
+    EstateSale:
       type: object
       description: Information regarding the sale of the estate.
       properties:
-        oppdragsid:
-          $ref: '#/components/schemas/Oppdragsid'
-        bolig:
-          $ref: '#/components/schemas/Bolig'
-        meglerkontor:
-          $ref: '#/components/schemas/Meglerkontor'
-        hovedselger:
+        assignmentId:
+          $ref: '#/components/schemas/AssignmentId'
+        brokerDepartment:
+          $ref: '#/components/schemas/BrokerDepartment'
+        estate:
+          $ref: '#/components/schemas/Estate'
+        mainSeller:
           description: The main seller of the estate. First receiver of the self declaration form.
-          $ref: '#/components/schemas/Selger'
-        medselgere:
+          $ref: '#/components/schemas/Seller'
+        coSellers:
           type: array
           description: |
             If there are multiple sellers of the estate, put the additional ones here.
             These will receive the self declaration form (to sign) after the main seller has signed.
           items:
-            $ref: '#/components/schemas/Selger'
+            $ref: '#/components/schemas/Seller'
           example:
-            - fornavn: "Medselger"
-              etternavn: "Medselgersen"
-              personnummer: "09876543210"
-              telefonnummer: "87654321"
-              epost: "test2@test.test"
-        salgstype:
-          type: array
-          items:
-            $ref: '#/components/schemas/Salgstype'
-          minItems: 1
-          example: ["vanlig"]
-        prisantydning:
+            - firstname: "Medselger"
+              surname: "Medselgersen"
+              socialSecurityNumber: "09876543210"
+              email: "test2@test.test"
+              phoneNumber: "87654321"
+        priceSuggestion:
           descripton: Price suggestion.
           type: integer
-          minimum: 0
-          exclusiveMinimum: true
           example: 100000
-        orderId:
-          description: |-
-            ID that can be used if the boligeselgerforsikring order is tied to an order object in the partner broker
-            system. Unique per order.
+        ownershipType:
+          $ref: '#/components/schemas/Ownershiptype'
+          default: annen_eierform
+        forcedSale:
+          description: If the property is forced to sale (tvangssalg). Does not qualify for the sellers insurance.
+          type: boolean
+        estateOfDeceased:
+          description: If the property is a sale of deceased sellers.
+          type: boolean
+        professional:
+          description: |
+            If the sale of the property is in any way associated with professional real estate sellers.
+            Does not qualify for the sellers insurance.
+          type: boolean
+        salePrice:
+          description: Final sale price - required to activate insurance.
+          type: integer
+          example: 1000000
+        takeoverDate:
+          description: Takeover date - required to activate insurance.
+          nullable: false
+          format: date
           type: string
-          nullable: true
-          example: "1"
-        kjopsopplysninger:
-          $ref: '#/components/schemas/Kjopsopplysninger'
+          example: "2023-05-28"
+        sellerInsuranceActive:
+          description: Set to true if should activate/confirm the insurance
+          type: boolean
+        selfDeclarationFormLocked:
+          description: If the self declaration form should be closed for editing (true) or open (false)
+          type: boolean
       required:
-        - oppdragsid
-        - bolig
-        - meglerkontor
-        - hovedselger
-        - salgstype
-        - prisantydning
+        - assignmentId
+        - orgnr
+        - brokerDepartment
+        - estate
+        - mainSeller
+        - coSellers
+        - priceSuggestion
+        - ownershipType
+        - forcedSale
+        - estateOfDeceased
+        - professional
 
-    Bolig:
+    Estate:
       type: object
       description: Information regarding the Estate being sold.
       properties:
-        adresse:
-          $ref: '#/components/schemas/Adresse'
-        kjeller:
-          description: Basement
-          type: boolean
-        eiendomstype:
-          type: array
-          items:
-            $ref: '#/components/schemas/Eiendomstype'
-          minItems: 1
-          example: ["enebolig"]
-        bruksareal:
+        address:
+          $ref: '#/components/schemas/Address'
+        estateType:
+          $ref: '#/components/schemas/EstateType'
+          default: annet_boligbygg
+        floorArea:
           description: Floor area.
           type: integer
-          minimum: 0
-          exclusiveMinimum: true
           example: 100
-        byggeaar:
+        builtYear:
           description: Construction year.
           type: integer
-          minimum: 0
-          exclusiveMinimum: true
           example: 2004
       required:
-        - adresse
-        - kjeller
-        - eiendomstype
-        - bruksareal
-        - byggeaar
+        - address
+        - estateType
+        - floorArea
+        - builtYear
 
-    Meglerkontor:
+    BrokerDepartment:
       type: object
-      description: Information regarding the broker office responsible for conducting the estate sale.
+      description: Details of the broker company/office/department responsible for the sale.
       properties:
-        partner:
-          $ref: '#/components/schemas/Partner'
-        avdelingsnavn:
-          description: Name of the broker office/department - Cannot be blank.
+        name:
+          description: Name of broker department
           type: string
-          minLength: 1
-          maxLength: 50
-          pattern: '^.*\S.*$'
           example: "Eiendomsmegling AS, avd. Oslo"
-        avdelingsId:
-          description: Unique id for the broker office/department - Cannot be blank.
+        orgnr:
+          $ref: '#/components/schemas/OrganizationNumber'
+        id:
+          description: Unique id for the department, provided by Gjensidige
           type: string
-          minLength: 1
-          maxLength: 50
-          pattern: '^.*\S.*$'
-          example: "1"
-        organisasjonsnummer:
-          $ref: '#/components/schemas/Organisasjonsnummer'
-        andreAssosierteOrganisasjonsnumre:
-          description: If the office/department/broker firm uses multiple organization numbers, put them here.
-          type: array
-          items:
-            $ref: '#/components/schemas/Organisasjonsnummer'
-          uniqueItems: true
-          example: ["987654321"]
-        ansvarligMegler:
-          description: Unique id for the broker agent - Cannot be blank if not null.
-          $ref: '#/components/schemas/Megler'
+          example: "S123456"
       required:
-        - partner
-        - avdelingsnavn
-        - avdelingsId
-        - organisasjonsnummer
+        - name
+        - orgnr
+        - id
 
-    Selger:
+    Seller:
       type: object
       description: Information regarding the seller(s) of the estate.
       properties:
-        fornavn:
+        firstname:
           description: First name - Cannot be blank.
           type: string
-          minLength: 1
-          maxLength: 100
-          pattern: '^[A-Za-z]+(?:[-\s][A-Za-z]+)*$'
           example: "Selger"
-        etternavn:
+        surname:
           description: Last name - Cannot be blank.
           type: string
-          minLength: 1
-          maxLength: 100
-          pattern: '^[A-Za-z]+(?:[-\s][A-Za-z]+)*$'
           example: "Selgersen"
-        personnummer:
+        socialSecurityNumber:
           description: Social security number - Must be 11 digits.
           type: string
-          minLength: 11
-          maxLength: 11
-          pattern: '^[0-9]*$'
           example: "01234567890"
-        epost:
+        email:
           description: Email.
           type: string
           format: email
           example: "test@test.test"
-        telefonnummer:
+        phoneNumber:
           description: Phone number - Must be 8 digits.
           type: string
-          minLength: 8
-          maxLength: 8
-          pattern: '^[0-9]*$'
           example: "12345678"
       required:
-        - fornavn
-        - etternavn
-        - personnummer
-        - epost
-        - telefonnummer
+        - firstname
+        - surname
+        - socialSecurityNumber
+        - email
+        - phoneNumber
 
-    Salgstype:
+    Ownershiptype:
       type: string
       enum:
-        - dodsbo
-        - oppgjoer
-        - vanlig
-        - tvangssalg
-        - verdivurdering
-        - fullmakt
-        - annen
+        - selveier
+        - borettslag
+        - aksje
+        - obligasjon
+        - annen_eierform
       description: |
-        Estate sale types for the assignment
-        - `dodsbo`: Estate of deceased.
-        - `oppgjoer`: Settlement assignment.
-        - `vanlig`: Ordinary sale.
-        - `tvangssalg`: Forced sale. Does not qualify to buy boligselgerforsikring.
-        - `verdivurdering`: Evaluation assignment.
-        - `fullmakt`: The estate sale uses proxies.
-        - `annen`: Other. Does not qualify to buy boligselgerforsikring.
+        Ownership types
+        - `selveier`: Full ownership of property and land.
+        - `borettslag`: Right to use via housing cooperative membership.
+        - `aksje`: Right to use tied to company share ownership.
+        - `obligasjon`: Right to use based on a housing bond.
+        - `annen_eierform`: Unknown/other ownership type. Does not qualify for the insurance.
 
-
-    Eiendomstype:
+    EstateType:
       type: string
       enum:
         - enebolig
-        - leilighet
+        - bolighus
         - rekkehus
-        - tomannsbolig
-        - landbruk
-        - fritidsbolig
-        - obligasjonsleilighet
-        - naeringsbygg
+        - leilighet
         - hytte
-        - annen
+        - annet_boligbygg
       description: |
-        Estate types
-        - `enebolig`: Detached house.
-        - `leilighet`: Appartment.
-        - `rekkehus`: Terraced house.
-        - `tomannsbolig`: Semi-detached house.
-        - `landbruk`: Agriculture property.
-        - `fritidsbolig`: Holiday home.
-        - `obligiasjon`: Bond. Does not qualify to buy boligselgerforsikring.
-        - `naeringsbygg`: Commercial building. Does not qualify to buy boligselgerforsikring.
-        - `hytte`: Cabin.
-        - `annen`: Other. Does not qualify to buy boligselgerforsikring.
+        Ownership types
+        - `enebolig`: Single-family house. Detached. On its own plot of land.
+        - `bolighus`: Residential house.
+        - `rekkehus`: Townhouse/Row house.
+        - `leilighet`: Apartment.
+        - `hytte`: Cabin/Cottage.
+        - `annet_boligbygg`: Other residential building. Does not qualify for the insurance.
 
-    Partner:
-      description: Broker organisations in partnership with Gjensidige.
-      type: string
-      enum:
-        - propr
-
-    Adresse:
+    Address:
       type: object
       description: Information regarding the address of the estate being sold.
       properties:
-        gateadresse:
+        streetAddress:
           description: Street address - Cannot be blank.
           type: string
-          minLength: 1
-          maxLength: 50
-          pattern: '^.*\S.*$'
           example: "Adresseveien 15"
-        poststed:
+        city:
           description: City - Cannot be blank.
           type: string
-          minLength: 1
-          maxLength: 50
-          pattern: '^.*\S.*$'
           example: "OSLO"
-        postnummer:
+        postalCode:
           description: Postal code - Cannot be blank.
           type: string
-          minLength: 1
-          maxLength: 50
-          pattern: '^.*\S.*$'
           example: "0037"
-        kommunenummer:
+        municipalityNumber:
           description: Municipality number - Must be 4 digits.
           type: string
-          minLength: 4
-          maxLength: 4
-          pattern: '^[0-9]*$'
           example: "0001"
         gaardsnummer:
           description: Gårdsnummer - Must be digits.
           type: string
-          minLength: 1
-          maxLength: 50
-          pattern: '^[0-9]*$'
           example: "1"
         bruksnummer:
           description: Bruksnummer.
           type: integer
-          minimum: 0
-          exclusiveMinimum: true
           example: 1
         festenummer:
           description: Festenummer.
           type: integer
-          nullable: true
           example: 1
         seksjonsnummer:
           description: Seksjonsnummer.
           type: integer
           minimum: 0
-          nullable: true
           example: 1
         bolignummer:
           description: Bolignummer - Cannot be blank if present.
           type: string
-          minLength: 1
-          maxLength: 50
-          pattern: '^.*\S.*$'
-          nullable: true
           example: "H101"
       required:
-        - gateadresse
-        - poststed
-        - postnummer
-        - kommunenummer
+        - streetAddress
+        - city
+        - postalCode
+        - municipalityNumber
         - gaardsnummer
         - bruksnummer
 
-    Megler:
-      type: object
-      description: Broker employee details
-      properties:
-        id:
-          type: string
-          description: ID reference used for broker employee in partner broker system - Cannot be blank if not null.
-          minLength: 1
-          maxLength: 50
-          pattern: '^.*\S.*$'
-          example: "MEGLERID"
-        navn:
-          type: string
-          description: First and last name of broker employee - Cannot be blank if not null.
-          example: "Megler Meglersen"
-          minLength: 1
-          maxLength: 100
-          pattern: '^.*\S.*$'
-        epost:
-          description: Email of broker employee.
-          type: string
-          format: email
-          example: "test@test.test"
-        telefonnummer:
-          description: Broker employees phone number - Must be 8 digits if not null.
-          type: string
-          minLength: 8
-          maxLength: 8
-          pattern: '^[0-9]*$'
-          example: "12345678"
-
-    Kjopsopplysninger:
-      type: object
-      description: Additional info needed when buying/confirming the insurance. Required during buy.
-      properties:
-        salgssum:
-          description: Final sale price - required.
-          nullable: false
-          type: integer
-          minimum: 0
-          exclusiveMinimum: true
-          example: 1000000
-        overtakelsedato:
-          description: Takeover date - required.
-          nullable: false
-          format: date
-          type: string
-          example: "2023-05-28"
-        formidlingsforingsdato:
-          description: Date for when the insurance should be active from. Cannot be earlier than the takeover date.
-          format: date
-          type: string
-          example: "2023-03-28"
-        dokumenter:
-          $ref: '#/components/schemas/Dokumenter'
-      required:
-        - salgssum
-        - overtakelsedato
-        - formidlingsforingsdato
-        - dokumenter
-
-    Dokumenter:
-      type: object
-      description: Various informational/sale documents attached to the estate sale.
-      properties:
-        tilstandsrapport:
-          description: Tilstandsrapport - Cannot empty if present.
-          type: string
-          format: byte
-          nullable: true
-          minLength: 1
-          example: "dGVzdA=="
-        salgsoppgave:
-          description: Salgsoppgave - Cannot empty if present.
-          type: string
-          format: byte
-          nullable: true
-          minLength: 1
-          example: "dGVzdA=="
-        salgsoppgaveVedlegg:
-          description: Additional documents for the salgsoppgave.
-          type: array
-          items:
-            type: string
-            format: byte
-          nullable: false
-          example: []
-      required:
-        - salgsoppgaveVedlegg
-
-    Oppdragsid:
+    AssignmentId:
       type: string
       description: Uniquely identifies the estate assignment in the broker system - Cannot be blank.
-      minLength: 1
-      maxLength: 50
-      pattern: '^.*\S.*$'
       example: "1"
 
-    Organisasjonsnummer:
-      description: Organization number - Must be 9 digits.
+    OrganizationNumber:
+      description: Organization number for the broker department responsible for the sale - Must be 9 digits.
       type: string
-      minLength: 9
-      maxLength: 9
-      pattern: '^[0-9]*$'
       example: "123456789"
 
-    Betalingsinformasjon:
+    SelfDeclarationDetails:
       type: object
-      description: Payment info for the ordered insurance.
+      description: Details from the self declaration form; form progress, etc
       properties:
-        pris:
-          description: Price of the boligselgerforsikring insurance.
-          type: integer
-        kid:
-          description: Payment identification number.
-          type: string
-          example: "1"
-        kontonummer:
-          description: Account number.
-          type: string
-          example: "1"
-        forsikringsnummer:
-          description: Unique id for the insurance instance.
-          type: string
-          example: "1"
-      required:
-        - pris
-        - kid
-        - kontonummer
-        - forsikringsnummer
-
-    Tilbud:
-      type: object
-      description: Insurance offer details.
-      properties:
-        premie:
-          description: Current price of the boligselgerforsikring insurance. Subject to change.
-          type: integer
-        kid:
-          description: Payment identification number.
-          type: string
-          example: "1"
-        forsikringsnummer:
-          description: Unique id for the insurance instance.
-          type: string
-          example: "1"
-      required:
-        - kid
-        - premie
-        - risikonummer
-        - forsikringsnummer
-
-    EgenerklaeringStatus:
-      type: object
-      description: Progress on sellers completion of the self declaration form
-      properties:
-        boligselgerforsikringAccepted:
+        insuranceAccepted:
           description: If the seller accepted the insurance or not.
           type: boolean
-          nullable: true
         signed:
           description: If the self declaration form is signed (true), or not (false).
           type: boolean
-        egenerklaeringLaast:
-          description: If the egenerklaering is locked for editing (true), or not (false)
+        locked:
+          description: If the form is locked for editing (true), or not (false)
           type: boolean
         signedAt:
           description: When the seller last signed the self declaration form. Null if it is not signed.
@@ -630,21 +382,44 @@ components:
           format: date
           example: '2008-12-03T10:15:30'
           nullable: true
-        laasChangedAt:
-          description: When the lock on the self decleration form was last altered. Null if the lock wasn't altered.
+        lockStateChangedAt:
+          description: When the lock state on the self decleration form was last altered. Null if the lock wasn't altered.
           type: string
           format: date
           example: '2008-12-03T10:15:30'
-          nullable: true
-        profesjonell:
-          description: If the seller answered yes to being a commercial agent.
-          type: boolean
-          example: true
-          nullable: true
       required:
-        - boligselgerforsikringAccepted
-        - egenerklaeringLaast
+        - insuranceAccepted
         - signed
+        - locked
+
+    InsuranceDetails:
+      type: object
+      description: Insurance details.
+      properties:
+        insuranceNumber:
+          description: Unique id for the insurance instance.
+          type: string
+          example: "1"
+        kid:
+          description: Payment identification number.
+          type: string
+          example: "1"
+        accountNumber:
+          description: Account number.
+          type: string
+          example: "1"
+        price:
+          description: Current price of the boligselgerforsikring insurance. Subject to change.
+          type: integer
+        active:
+          description: Whether the insurance is activated (sold/confirmed) or not
+          type: boolean
+      required:
+        - insuranceNumber
+        - kid
+        - accountNumber
+        - price
+        - active
 
     Error:
       type: object
@@ -656,85 +431,127 @@ components:
           example: "An error occured"
         code:
           $ref: '#/components/schemas/ErrorCode'
-        id:
-          description: Unique trace id issued for the error instance
-          type: string
-          example: "1"
-      required:
-        - id
 
     ErrorCode:
       type: string
       enum:
-        - missing_json_field
-        - missing_path_variable
-        - already_bought
-        - disqualified
-        - not_signed
-        - signing_too_old
-        - overtakelsedato_too_early
-        - price_calculation_failure
-        - parameter_validation_error
-        - validation_error
-        - tilbud_not_found
         - address_not_found
-        - building_not_found
-        - kunde_not_found
-        - missing_seksjonsnummer
-        - missing_festenummer
-        - not_locked
-        - not_accepted_by_seller
         - ambiguous_address
-        - egenerklaering_not_found
+        - disqualified
+        - email_incorrectly_formatted
+        - insurance_already_confirmed
+        - insurance_not_accepted
+        - insurance_not_found
+        - manual_processing_required
+        - media_type_not_supported
+        - method_not_supported
+        - missing_address
+        - missing_bruksnummer
+        - missing_built_year
+        - missing_city
+        - missing_email
+        - missing_festenummer
+        - missing_firstname
+        - missing_floor_area
+        - missing_gaardsnummer
+        - missing_json_field
+        - missing_lastname
+        - missing_main_building
+        - missing_municipality_number
+        - missing_path_variable
+        - missing_phone
+        - missing_postal_code
+        - missing_price_suggestion
+        - missing_sale_price
+        - missing_seksjonsnummer
+        - missing_seller
+        - missing_ssn
+        - missing_takeover_date
+        - self_declaration_not_found
+        - self_declaration_not_locked
+        - self_declaration_not_signed
+        - seller_not_found
+        - signed_self_declaration_not_found
+        - signing_expired
+        - ssn_incorrectly_formatted
+        - takeover_date_too_early
+        - unknown
+        - unknown_estate_type
+        - unknown_ownership_type
+
       description: |
-        Code to use to resolve business specific user input errors that may arise.
-        - `missing_json_field`: A required json field is missing from the input schema
-        - `missing_path_variable`: A required path variable is missing from the url
-        - `already_bought`: The insurance is already bought/confirmed.
-        - `disqualified`: The estate does not qualify to buy boligselgerforsikring. See 'message' for more details.
-        - `not_signed`: The self decleration form (egenerklæring) must first be signed by the seller.
-        - `signing_too_old`: The signing date on the self decleration form is too old, and must be signed anew.
-        - `overtakelsedato_too_early`: Takeover date cannot be earlier than todays date.
-        - `price_calculation_failure`: Price for insurance could not be calculated. Insurance must be processed manually.
-        - `parameter_validation_error`: Json input arguments failed the schema requirements. Check 'parameterValidationErrors' for details.
-        - `validation_error`: The request failed the validation. See 'message' for details.
-        - `tilbud_not_found`: No insurance offer found or self declaration form found
-        - `address_not_found`: Address could not be found (norkart)
-        - `building_not_found`: No building found for address id
-        - `kunde_not_found`: Customer/seller does not exist
-        - `missing_seksjonsnummer`: Seksjonsnummer is required for this address, and is missing
-        - `missing_festenummer`: Festenummer is required for this address, and is missing
-        - `not_locked`: The self decleration form must be locked for editing before the insurance can be bought
-        - `not_accepted_by_seller`: The seller declined the insurance offer, and the insurance cannot be confirmed
+        Code for resolving input errors.
+        - `address_not_found`: Address could not be found (in Norkart's registries)
         - `ambiguous_address`: The provided address is ambiguous and gives multiple search results
-        - `egenerklaering_not_found`: The self decleration form does not exist, and must first be created / sent out
+        - `disqualified`: The estate does not qualify to buy boligselgerforsikring. See 'message' for more details.
+        - `email_incorrectly_formatted`: Email of seller is formatted incorrectly
+        - `insurance_already_confirmed`: The insurance is already bought/confirmed.
+        - `insurance_not_accepted`: The seller declined the insurance offer, and the insurance cannot be confirmed
+        - `insurance_not_found`: Insurance is either not found, or is outdated. A new self declaration (and offer) must be created.
+        - `manual_processing_required`: The insurance needs to be handled manually. Contact boligselgerforsikring@gjensidige.no.
+        - `media_type_not_supported`: Query parameter did not pass the input requirements
+        - `method_not_supported`: Http method is not supported.
+        - `missing_address`: Street address is missing
+        - `missing_bruksnummer`: Bruksnummer is missing
+        - `missing_built_year`: Built year is missing
+        - `missing_city`: City is missing
+        - `missing_email`: Email of seller is missing
+        - `missing_festenummer`: Festenummer is required for this address, and is missing
+        - `missing_firstname`: Firstname of seller is missing
+        - `missing_floor_area`: Floor area is missing
+        - `missing_gaardsnummer`: Gaardsnummer is missing
+        - `missing_json_field`: A required json field is missing from the input schema
+        - `missing_json_field`: Input json object is missing a required field
+        - `missing_lastname`: Lastname of seller is missing
+        - `missing_main_building`: Could not find a main building on the given address
+        - `missing_municipality_number`: Municipality number is missing
+        - `missing_path_variable`: A required path variable is missing from the url
+        - `missing_phone`: Phone number of seller is missing
+        - `missing_postal_code`: Postal code is missing
+        - `missing_price_suggestion`: Price suggestion is missing
+        - `missing_sale_price`: Sale price is missing
+        - `missing_seksjonsnummer`: Seksjonsnummer is required for this address, and is missing
+        - `missing_seller`: Seller is missing
+        - `missing_ssn`: Social security number of seller is missing
+        - `missing_takeover_date`: Takeover date is missing
+        - `self_declaration_not_found`: The self declaration form was not found. The form must first be created/sent out.
+        - `self_declaration_not_locked`: The self declaration must first be locked.
+        - `self_declaration_not_signed`: The self decleration form (egenerklæring) must first be signed by the seller.
+        - `seller_not_found`: Could not find given seller. Please check the social security number.
+        - `signed_self_declaration_not_found`: The signed self declaration is not available for download.
+        - `signing_expired`: The signed self declaration form is over 6 months old, and has expired.
+        - `ssn_incorrectly_formatted`: Social security number of seller is formatted incorrectly
+        - `takeover_date_too_early`: Takeover date cannot be earlier than todays date.
+        - `unknown_estate_type`: Check that estate type is one of: 'enebolig', 'leilighet', 'bolighus', 'rekkehus', 'hytte'
+        - `unknown_ownership_type`: Check that ownership type is one of: 'selveier', 'borettslag', 'aksje', 'obligasjon'
+        - `unknown`: An unknown error occurred. Please contact Gjensidige if the error sustains.
 
   requestBodies:
-    Boligsalgopplysninger:
+    EstateSale:
       description: Json payload with estate sale information
       required: true
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Boligsalgopplysninger'
+            $ref: '#/components/schemas/EstateSale'
 
   responses:
-    Tilbud:
-      description: Json response with tilbudsinfo for Gjensidiges boligselgerforsikring
+    SelfDeclarationDetails:
+      description: Json response with self declaration details
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Tilbud'
+            $ref: '#/components/schemas/SelfDeclarationDetails'
 
-    EgenerklaeringStatus:
-      description: Json response with egenerklaering status
+    InsuranceDetails:
+      description: Json response with seller insurance offer details
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/EgenerklaeringStatus'
+            $ref: '#/components/schemas/InsuranceDetails'
 
-    SignedEgenerklaering:
-      description: Bytestream response of the signed egenerklaering pdf.
+    SignedSelfDeclaration:
+      description: Byte stream response of the signed self declaration pdf.
       content:
         application/pdf:
           schema:
@@ -747,22 +564,17 @@ components:
             type: string
             example: attachment; filename=document.pdf
 
-    Betalingsinformasjon:
-      description: Json response with payment info
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Betalingsinformasjon'
-
     Error:
-      description: Json response with error message and id
+      description: Json response with error messages and codes
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            type: array
+            items:
+              $ref: '#/components/schemas/Error'
           example:
-            id: "1"
-            message: "Http method 'GET' is not supported. Supported methods are: [POST]"
+            - code: "method_not_supported"
+              message: "Http method 'GET' is not supported. Supported methods are: [POST]"
 
   securitySchemes:
     app2AppOauth:

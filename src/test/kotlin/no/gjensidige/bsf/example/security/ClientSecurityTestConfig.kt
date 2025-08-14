@@ -15,14 +15,17 @@ fun tokenMockClientEngine() = MockEngine {
 
 fun mockEgenerklaeringClientEngine() = MockEngine { request ->
     when (request.url.encodedPath) {
-        "/eiendomsmegling-api/egenerklaering", "/eiendomsmegling-api/egenerklaering/lock" ->
+        "/eiendomsmegling-api/self-declaration" ->
             respond(
                 //language=JSON
-                content = ByteReadChannel("""
+                content = ByteReadChannel(
+                    """
                     {
-                      "premie": 1000000,
+                      "insuranceNumber": "1",
                       "kid": "1",
-                      "forsikringsnummer": "1"
+                      "accountNumber": "60050608460",
+                      "price": 1000000,
+                      "active": false
                     }
                     """.trimIndent()
                 ),
@@ -30,24 +33,24 @@ fun mockEgenerklaeringClientEngine() = MockEngine { request ->
                 headers = headersOf(HttpHeaders.ContentType, "application/json")
             )
 
-        "/eiendomsmegling-api/egenerklaering/1/status" ->
+        "/eiendomsmegling-api/self-declaration/1" ->
             respond(
                 //language=JSON
-                content = ByteReadChannel("""
+                content = ByteReadChannel(
+                    """
                   {
-                    "boligselgerforsikringAccepted": true,
-                    "signed": true,
-                    "signedAt": "2007-12-03",
-                    "egenerklaeringLaast": true,
-                    "laasChangedAt": "2007-12-03",
-                    "profesjonell": false
+                      "insuranceAccepted": true,
+                      "signed": true,
+                      "locked": true,
+                      "signedAt": "2023-01-03",
+                      "lockStateChangedAt": "2023-01-03"
                   }
                   """.trimIndent()
                 ),
                 status = HttpStatusCode.OK,
                 headers = headersOf(HttpHeaders.ContentType, "application/json")
             )
-        "/eiendomsmegling-api/egenerklaering/1/signed" ->
+        "/eiendomsmegling-api/self-declaration/1/signed" ->
             respond(
                 content = ByteReadChannel(byteArrayOf(0x25, 0x50, 0x44, 0x46)), // Represents "%PDF" header bytes
                 status = HttpStatusCode.OK,
@@ -61,14 +64,16 @@ fun mockEgenerklaeringClientEngine() = MockEngine { request ->
 fun mockBoligselgerforsikringClientEngine() = MockEngine { request ->
     respond(
         //language=JSON
-        content = ByteReadChannel("""
-            {
-              "pris": 1000000,
-              "kid": "1",
-              "kontonummer": "1",
-              "forsikringsnummer": "1"
-            }
-            """.trimIndent()
+        content = ByteReadChannel(
+            """
+                    {
+                      "insuranceNumber": "1",
+                      "kid": "1",
+                      "accountNumber": "60050608460",
+                      "price": 1000000,
+                      "active": true
+                    }
+                    """.trimIndent()
         ),
         status = HttpStatusCode.OK,
         headers = headersOf(HttpHeaders.ContentType, "application/json")
